@@ -10,28 +10,21 @@ export default {
   theme: {
     extend: {
       keyframes: {
-        marquee: {
+        arrowSlide: {
           "0%": { transform: "translateX(0)" },
-          "100%": { transform: "translateX(-50%)" },
-        },
-        float: {
-          "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-6px)" },
+          "30%, 100%": { transform: "translateX(8px)" },
         },
       },
       animation: {
-        marquee: "marquee 15s linear infinite",
-        float: "float 2s ease-in-out infinite",
+        "arrow-slide": "arrowSlide 2s linear infinite",
       },
       colors: {
-        primary: "var(--primary)",
-        secondary: "var(--secondary)",
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
       fontFamily: {
-        apparat: ["KMR Apparat", "sans-serif"],
-        pxg: ["'PXG'", "sans-serif"],
+        display: ["var(--display)"],
+        body: ["var(--body)"],
       },
     },
   },
