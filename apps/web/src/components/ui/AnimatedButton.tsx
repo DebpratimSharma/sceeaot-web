@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+export type AnimatedButtonTheme = "dark" | "light";
+
 export interface AnimatedButtonProps {
   children: React.ReactNode;
   href?: string;
@@ -11,7 +13,19 @@ export interface AnimatedButtonProps {
   className?: string;
   arrow?: React.ReactNode;
   arrowClassName?: string;
+  /**
+   * Theme preset:
+   * - "dark": for dark backgrounds (default): light text, white active underline, white/25 base track
+   * - "light": for white/light backgrounds: dark text, dark active underline, dark/20 base track
+   */
+  theme?: AnimatedButtonTheme;
+  /**
+   * Custom class for the base subtle track (overrides theme preset)
+   */
   underlineClassName?: string;
+  /**
+   * Custom class for the active underline bar (overrides theme preset)
+   */
   activeUnderlineClassName?: string;
   as?: "a" | "button";
   type?: "button" | "submit" | "reset";
@@ -28,8 +42,9 @@ export function AnimatedButton({
   className,
   arrow = "→",
   arrowClassName,
-  underlineClassName = "bg-white/25",
-  activeUnderlineClassName = "bg-white",
+  theme = "dark",
+  underlineClassName,
+  activeUnderlineClassName,
   as,
   type = "button",
   target,
@@ -42,7 +57,25 @@ export function AnimatedButton({
 
   const [travelDistance, setTravelDistance] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const [underlinePhase, setUnderlinePhase] = useState<"idle" | "entering" | "exiting">("idle");
+  const [sweepCount, setSweepCount] = useState(0);
+
+  // Theme-aware default styles
+  const isLight = theme === "light";
+
+  const defaultTextColor = isLight
+    ? "text-[var(--foreground,#0a0a0a)] hover:text-black focus-visible:ring-black/50"
+    : "text-[#f0efed] hover:text-white focus-visible:ring-white/50";
+
+  const defaultBaseTrack = isLight
+    ? "bg-[var(--foreground,#0a0a0a)]/20"
+    : "bg-white/25";
+
+  const defaultActiveLine = isLight
+    ? "bg-[var(--foreground,#0a0a0a)]"
+    : "bg-white";
+
+  const finalBaseTrack = cn(defaultBaseTrack, underlineClassName);
+  const finalActiveLine = cn(defaultActiveLine, activeUnderlineClassName);
 
   // Dynamically calculate the horizontal distance the text needs to glide to reach the right edge
   const measure = useCallback(() => {
@@ -75,22 +108,22 @@ export function AnimatedButton({
 
   const handleMouseEnter = () => {
     setIsHovered(true);
-    setUnderlinePhase("entering");
+    setSweepCount((prev) => prev + 1);
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
-    setUnderlinePhase("exiting");
+    setSweepCount((prev) => prev + 1);
   };
 
   const handleFocus = () => {
     setIsHovered(true);
-    setUnderlinePhase("entering");
+    setSweepCount((prev) => prev + 1);
   };
 
   const handleBlur = () => {
     setIsHovered(false);
-    setUnderlinePhase("exiting");
+    setSweepCount((prev) => prev + 1);
   };
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
@@ -117,7 +150,7 @@ export function AnimatedButton({
             className={cn("inline-block text-sm leading-none", arrowClassName)}
             initial={{ x: -18, opacity: 0 }}
             animate={isHovered ? { x: 0, opacity: 1 } : { x: -18, opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
             aria-hidden="true"
           >
             {arrow}
@@ -129,7 +162,7 @@ export function AnimatedButton({
           ref={textRef}
           className="inline-block whitespace-nowrap will-change-transform"
           animate={{ x: isHovered ? travelDistance : 0 }}
-          transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
         >
           {children}
         </motion.span>
@@ -140,7 +173,7 @@ export function AnimatedButton({
             className={cn("inline-block text-sm leading-none", arrowClassName)}
             initial={{ x: 0, opacity: 1 }}
             animate={isHovered ? { x: 18, opacity: 0 } : { x: 0, opacity: 1 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
             aria-hidden="true"
           >
             {arrow}
@@ -148,41 +181,45 @@ export function AnimatedButton({
         </div>
       </div>
 
-      {/* Base underline track */}
+      {/* Base subtle underline track */}
       <div
         className={cn(
           "absolute bottom-0 left-0 right-0 h-[1px] transition-opacity",
-          underlineClassName
+          finalBaseTrack
         )}
       />
 
-      {/* Active underline bar: sweeps left-to-right on hover in, and sweeps out to right on hover out */}
+      {/* Active underline bar: Initially present and visible; sweeps left-to-right on interaction */}
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[1px] overflow-hidden">
-        <motion.div
-          className={cn("h-full w-full will-change-transform", activeUnderlineClassName)}
-          initial={{ x: "-100%" }}
-          animate={
-            underlinePhase === "entering"
-              ? { x: "0%" }
-              : underlinePhase === "exiting"
-              ? { x: "100%" }
-              : { x: "-100%" }
-          }
-          transition={
-            underlinePhase === "idle"
-              ? { duration: 0 }
-              : { duration: 0.38, ease: [0.22, 1, 0.36, 1] }
-          }
-          onAnimationComplete={() => {
-            setUnderlinePhase((prev) => (prev === "exiting" ? "idle" : prev));
-          }}
-        />
+        {sweepCount === 0 ? (
+          // Initial resting active underline (fully visible on load)
+          <div className={cn("absolute inset-0 h-full w-full", finalActiveLine)} />
+        ) : (
+          // Sweep animation on hover/unhover: current line sweeps out right, fresh line sweeps in from left
+          <>
+            <motion.div
+              key={`exit-${sweepCount}`}
+              className={cn("absolute inset-0 h-full w-full will-change-transform", finalActiveLine)}
+              initial={{ x: "0%" }}
+              animate={{ x: "100%" }}
+              transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+            />
+            <motion.div
+              key={`enter-${sweepCount}`}
+              className={cn("absolute inset-0 h-full w-full will-change-transform", finalActiveLine)}
+              initial={{ x: "-100%" }}
+              animate={{ x: "0%" }}
+              transition={{ duration: 0.75, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+            />
+          </>
+        )}
       </div>
     </>
   );
 
   const sharedClassName = cn(
-    "group relative inline-flex w-[220px] md:w-[260px] cursor-pointer select-none items-center pb-2.5 pt-1 text-[11px] md:text-[12px] font-medium tracking-[0.16em] uppercase text-[#f0efed] transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/50",
+    "group relative inline-flex w-[220px] md:w-[260px] cursor-pointer select-none items-center pb-2.5 pt-1 text-[11px] md:text-[12px] font-medium tracking-[0.16em] uppercase transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1",
+    defaultTextColor,
     className
   );
 

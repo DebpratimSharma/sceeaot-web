@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValueEvent } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import { homeAssets } from "@/components/home/content";
 
@@ -22,6 +22,7 @@ export function Navbar({
 }: NavbarProps) {
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [internalMuted, setInternalMuted] = useState(false);
+  const [isLightHeader, setIsLightHeader] = useState(false);
 
   const isMenuOpen = controlledMenuOpen !== undefined ? controlledMenuOpen : internalMenuOpen;
   const isMuted = controlledMuted !== undefined ? controlledMuted : internalMuted;
@@ -41,6 +42,20 @@ export function Navbar({
   const logoOpacity = useTransform(smoothScrollY, [0, 180], [1, 0]);
   const logoY = useTransform(smoothScrollY, [0, 180], [0, -25]);
   const logoPointerEvents = useTransform(smoothScrollY, (v) => (v < 180 ? "auto" : "none"));
+
+  // Track when the hero image fades out into the light section
+  useMotionValueEvent(smoothScrollY, "change", (latest) => {
+    setIsLightHeader(latest > 140);
+  });
+
+  useEffect(() => {
+    const handleCheck = () => {
+      setIsLightHeader(window.scrollY > 140);
+    };
+    handleCheck();
+    window.addEventListener("scroll", handleCheck, { passive: true });
+    return () => window.removeEventListener("scroll", handleCheck);
+  }, []);
 
   const handleToggleMenu = () => {
     if (onMenuToggle) {
@@ -134,7 +149,11 @@ export function Navbar({
           {/* Sound Toggle (Circular Icon Button) */}
           <button
             type="button"
-            className="size-9 rounded-full bg-[#1c1d20]/80 border border-white/20 flex items-center justify-center text-white/90 transition-all hover:bg-black hover:border-white/40 hover:scale-105 active:scale-95 cursor-pointer"
+            className={`size-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer border ${
+              isLightHeader
+                ? "bg-[#1c1d20] text-white border-transparent hover:bg-black"
+                : "bg-[#1c1d20]/80 border-white/20 text-white/90 hover:bg-black hover:border-white/40"
+            }`}
             onClick={handleToggleMute}
             aria-label={isMuted ? "Unmute sound" : "Mute sound"}
           >
@@ -145,18 +164,26 @@ export function Navbar({
             )}
           </button>
 
-          {/* WRITE TO US (White Pill Button) */}
+          {/* WRITE TO US (Pill Button: white on dark hero, #1c1d20 on light background) */}
           <a
             href="mailto:sceeaot@gmail.com"
-            className="rounded-full bg-white text-black font-semibold text-[11px] tracking-[0.05em] px-4 md:px-5 py-2 uppercase transition-all hover:bg-white/90 hover:scale-105 active:scale-95 shadow-sm inline-flex items-center"
+            className={`rounded-full font-semibold text-[11px] tracking-[0.05em] px-4 md:px-5 py-2 uppercase transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm inline-flex items-center ${
+              isLightHeader
+                ? "bg-[#1c1d20] text-white hover:bg-black"
+                : "bg-white text-black hover:bg-white/90"
+            }`}
           >
             WRITE TO US
           </a>
 
-          {/* MENU = (Dark Pill Button with Hamburger / Equal lines) */}
+          {/* MENU = (Transparent Pill Button: white border & text on hero, #1c1d20 border & text on light background) */}
           <button
             type="button"
-            className="rounded-full bg-[#1c1d20]/80 text-white border border-white/20 px-3.5 md:px-4 py-2 text-[11px] font-medium tracking-[0.05em] flex items-center gap-2 transition-all hover:bg-black hover:border-white/40 hover:scale-105 active:scale-95 cursor-pointer"
+            className={`rounded-full px-3.5 md:px-4 py-2 text-[11px] font-medium tracking-[0.05em] flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer border ${
+              isLightHeader
+                ? "text-[#1c1d20] border-[#1c1d20]/30 hover:bg-[#1c1d20]/5 hover:border-[#1c1d20]/60"
+                : "text-white border-white/20 hover:bg-black hover:border-white/40"
+            }`}
             onClick={handleToggleMenu}
             aria-expanded={isMenuOpen}
           >
@@ -165,8 +192,16 @@ export function Navbar({
               <span className="text-sm leading-none font-light">×</span>
             ) : (
               <span className="flex flex-col gap-[3px] w-3 justify-center">
-                <span className="h-[1.5px] w-full bg-white block rounded-full" />
-                <span className="h-[1.5px] w-full bg-white block rounded-full" />
+                <span
+                  className={`h-[1.5px] w-full block rounded-full transition-colors duration-300 ${
+                    isLightHeader ? "bg-[#1c1d20]" : "bg-white"
+                  }`}
+                />
+                <span
+                  className={`h-[1.5px] w-full block rounded-full transition-colors duration-300 ${
+                    isLightHeader ? "bg-[#1c1d20]" : "bg-white"
+                  }`}
+                />
               </span>
             )}
           </button>

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { AnimatedButton } from "./AnimatedButton";
+import { SectionDivider } from "./SectionDivider";
 
 export function StatementSection() {
   return (
@@ -22,35 +23,7 @@ export function StatementSection() {
       </div>
 
       {/* Animated Divider with Rotating Plus Icon in the Middle */}
-      <div className="relative my-8 flex w-full items-center justify-center md:my-12">
-        {/* Horizontal Line animating from center */}
-        <motion.div
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="h-px w-full origin-center bg-[var(--line)]"
-        />
-
-        {/* Rotating Plus Icon Container */}
-        <motion.div
-          className="absolute bg-[var(--background)] px-3 text-[14px] leading-none text-[var(--foreground)] select-none"
-          initial={{ scale: 0, rotate: -90 }}
-          whileInView={{ scale: 1, rotate: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <motion.span
-            className="inline-block cursor-pointer font-light"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
-            whileHover={{ scale: 1.3, rotate: 450, transition: { duration: 0.4 } }}
-            aria-hidden="true"
-          >
-            +
-          </motion.span>
-        </motion.div>
-      </div>
+      <SectionDivider />
 
       {/* Lower Horizontal Section: Left & Right */}
       <div className="grid grid-cols-1 items-start gap-8 pb-4 md:grid-cols-2 md:gap-16 md:pb-6">
@@ -70,10 +43,9 @@ export function StatementSection() {
           </p>
 
           <AnimatedButton
+            theme="light"
             href="#events"
-            className="mt-6 w-full max-w-[210px] pb-1.5 text-[10px] md:text-[11px] font-medium tracking-[0.08em] text-[var(--foreground)] hover:text-[var(--foreground)]"
-            underlineClassName="bg-[var(--foreground)]/25"
-            activeUnderlineClassName="bg-[var(--foreground)]"
+            className="mt-6 w-full max-w-[210px] pb-1.5 text-[10px] md:text-[11px] font-medium tracking-[0.08em]"
           >
             VIEW EVENTS
           </AnimatedButton>
