@@ -8,20 +8,13 @@ import { StatementSection } from "@/components/home/StatementSection";
 import { TeamSection } from "@/components/home/TeamSection";
 
 export default function HomePage() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [muted, setMuted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
-    <main className="site-shell">
-      <HeroSection
-        menuOpen={menuOpen}
-        muted={muted}
-        onMenuToggle={() => setMenuOpen(!menuOpen)}
-        onMuteToggle={() => setMuted(!muted)}
-        onNavigate={() => setMenuOpen(false)}
-      />
-      <StatementSection />
+    <main className="site-shell overflow-x-clip">
+      <HeroSection>
+        <StatementSection />
+      </HeroSection>
       <TeamSection />
       <EventsSection />
       <FaqSection

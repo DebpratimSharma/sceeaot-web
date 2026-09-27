@@ -1,6 +1,6 @@
 export const homeAssets = {
-  hero: "https://www.figma.com/api/mcp/asset/c59d7081-d998-4d21-87cb-dacaed77f10f.png",
-  logo: "https://www.figma.com/api/mcp/asset/a1a074f2-24e0-4a5a-a2b1-62c1b8539d85.png",
+  hero: "/images/background.png",
+  logo: "/scee_logo.png",
   team: [
     "https://www.figma.com/api/mcp/asset/7f30f13a-beb4-43d3-9298-08ffd8c12a94.png",
     "https://www.figma.com/api/mcp/asset/50b75aac-3ff4-4d87-8e04-546488ea902f.png",
