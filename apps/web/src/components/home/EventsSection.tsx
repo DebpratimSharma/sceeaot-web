@@ -259,6 +259,26 @@ export function EventsSection() {
     return () => updateNavbarState(false);
   }, [isVideoActive]);
 
+  // Listen for global mute toggle from Navbar
+  useEffect(() => {
+    const handleMuteChange = (e: Event) => {
+      const custom = e as CustomEvent<{ muted: boolean }>;
+      if (custom.detail && typeof custom.detail.muted === "boolean") {
+        const next = custom.detail.muted;
+        setIsMuted(next);
+        if (videoRef.current) {
+          videoRef.current.muted = next;
+          // If unmuting while video is active and was paused, ensure it plays
+          if (!next && isVideoActive && videoRef.current.paused) {
+            videoRef.current.play().catch(() => {});
+          }
+        }
+      }
+    };
+    window.addEventListener("site-mute-change", handleMuteChange);
+    return () => window.removeEventListener("site-mute-change", handleMuteChange);
+  }, [isVideoActive]);
+
   // Handle toggling showreel video background
   const toggleShowreel = () => {
     if (!isVideoActive) {
@@ -266,11 +286,17 @@ export function EventsSection() {
       updateNavbarState(true);
       if (videoRef.current) {
         videoRef.current.currentTime = 0;
+        videoRef.current.muted = isMuted;
         videoRef.current.play().catch(() => {
-          // If browser restricts unmuted autoplay, play muted as fallback
+          // If browser restricts unmuted autoplay, play muted as fallback and notify Navbar
           if (videoRef.current) {
             videoRef.current.muted = true;
             setIsMuted(true);
+            window.dispatchEvent(
+              new CustomEvent("site-mute-change", {
+                detail: { muted: true },
+              })
+            );
             videoRef.current.play().catch(() => {});
           }
         });

@@ -60,6 +60,18 @@ export function Navbar({
     return () => window.removeEventListener("showreel-toggle", handleShowreel);
   }, []);
 
+  // Listen for global mute state changes from other components (like EventsSection)
+  useEffect(() => {
+    const handleMuteChange = (e: Event) => {
+      const custom = e as CustomEvent<{ muted: boolean }>;
+      if (custom.detail && typeof custom.detail.muted === "boolean") {
+        setInternalMuted(custom.detail.muted);
+      }
+    };
+    window.addEventListener("site-mute-change", handleMuteChange);
+    return () => window.removeEventListener("site-mute-change", handleMuteChange);
+  }, []);
+
   useEffect(() => {
     const handleCheck = () => {
       setIsLightHeader(window.scrollY > 140);
@@ -78,11 +90,17 @@ export function Navbar({
   };
 
   const handleToggleMute = () => {
+    const nextMuted = !isMuted;
     if (onMuteToggle) {
       onMuteToggle();
     } else {
-      setInternalMuted((prev) => !prev);
+      setInternalMuted(nextMuted);
     }
+    window.dispatchEvent(
+      new CustomEvent("site-mute-change", {
+        detail: { muted: nextMuted },
+      })
+    );
   };
 
   const closeMenu = () => {
