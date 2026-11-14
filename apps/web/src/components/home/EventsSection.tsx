@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValueEvent, useScroll, useSpring, useTransform } from "framer-motion";
+import { Projector, X } from "lucide-react";
 import AnimatedButton from "./AnimatedButton";
+import { cn } from "@/lib/utils";
 
 interface EventItem {
   id: string;
@@ -190,6 +192,9 @@ function EventCard({ event }: { event: EventItem; index: number }) {
 
 export function EventsSection() {
   const [events, setEvents] = useState<EventItem[]>(FALLBACK_EVENTS);
+  const [isVideoActive, setIsVideoActive] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [scrollRange, setScrollRange] = useState(0);
@@ -222,7 +227,7 @@ export function EventsSection() {
     function updateScrollRange() {
       if (!trackRef.current) return;
       const parent = trackRef.current.parentElement;
-      const parentWidth = parent ? parent.clientWidth : window.innerWidth * 0.52;
+      const parentWidth = parent ? parent.clientWidth : (typeof window !== "undefined" && window.innerWidth >= 768 ? window.innerWidth * 0.52 : 360);
       const totalWidth = trackRef.current.scrollWidth;
       const range = Math.max(0, totalWidth - parentWidth + 60);
       setScrollRange(range);
@@ -238,6 +243,59 @@ export function EventsSection() {
     };
   }, [events]);
 
+  // Helper to notify navbar about showreel video state
+  const updateNavbarState = (active: boolean) => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("showreel-toggle", {
+          detail: { active },
+        })
+      );
+    }
+  };
+
+  useEffect(() => {
+    updateNavbarState(isVideoActive);
+    return () => updateNavbarState(false);
+  }, [isVideoActive]);
+
+  // Handle toggling showreel video background
+  const toggleShowreel = () => {
+    if (!isVideoActive) {
+      setIsVideoActive(true);
+      updateNavbarState(true);
+      if (videoRef.current) {
+        videoRef.current.currentTime = 0;
+        videoRef.current.play().catch(() => {
+          // If browser restricts unmuted autoplay, play muted as fallback
+          if (videoRef.current) {
+            videoRef.current.muted = true;
+            setIsMuted(true);
+            videoRef.current.play().catch(() => {});
+          }
+        });
+      }
+    } else {
+      setIsVideoActive(false);
+      updateNavbarState(false);
+      videoRef.current?.pause();
+    }
+  };
+
+  // Close showreel video on Escape key
+  useEffect(() => {
+    if (!isVideoActive) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsVideoActive(false);
+        updateNavbarState(false);
+        videoRef.current?.pause();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isVideoActive]);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
@@ -249,70 +307,173 @@ export function EventsSection() {
     restDelta: 0.001,
   });
 
-  const x = useTransform(smoothProgress, [0, 1], [0, -scrollRange]);
+  // Automatically pause video and update navbar when scrolled away from the showreel view
+  useMotionValueEvent(smoothProgress, "change", (latest) => {
+    const inShowreelView = latest >= 0.62 && latest <= 0.98;
+    if (!inShowreelView) {
+      if (videoRef.current && !videoRef.current.paused) {
+        videoRef.current.pause();
+      }
+      if (isVideoActive) {
+        updateNavbarState(false);
+      }
+    } else if (isVideoActive) {
+      if (videoRef.current && videoRef.current.paused) {
+        videoRef.current.play().catch(() => {});
+      }
+      updateNavbarState(true);
+    }
+  });
+
+  // 1. Horizontal events track translation: scrolls events across the right column until all are revealed
+  const trackX = useTransform(smoothProgress, [0, 0.62, 1], [0, -scrollRange, -scrollRange]);
+
+  // 2. Events Stage horizontal translation: slides left out of view as the next full screen enters
+  const stageX = useTransform(smoothProgress, [0, 0.62, 0.88, 1], ["0%", "0%", "-100%", "-100%"]);
+
+  // 3. Next Experience full screen horizontal translation: slides from 100% to 0% in the exact same motion
+  const nextScreenX = useTransform(smoothProgress, [0, 0.62, 0.88, 1], ["100%", "100%", "0%", "0%"]);
+
+  // Pointer events toggling to prevent interactions with off-screen panels
+  const stagePointerEvents = useTransform(smoothProgress, (v) => (v < 0.86 ? "auto" : "none"));
+  const nextScreenPointerEvents = useTransform(smoothProgress, (v) => (v > 0.60 ? "auto" : "none"));
 
   return (
-    <section ref={containerRef} className="relative h-[420vh] w-full" id="events">
-      <div className="sticky top-0 h-screen w-full flex flex-col bg-gradient-to-b from-[var(--background)] to-[#d1d1c7]">
-        {/* Gap partition: Top Horizontal Line with rotating plus icon right at the vertical divider intersection */}
-        <div className="relative w-full border-t border-[var(--line)]">
-          <div
-            className="absolute top-0 -translate-y-1/2 -translate-x-1/2 bg-[var(--background)] px-2.5 py-0.5 text-[15px] font-light leading-none text-[var(--foreground)] select-none z-30 left-1/2 md:left-[48%]"
-          >
-            <motion.span
-              className="inline-block cursor-pointer"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
-              whileHover={{ scale: 1.3, rotate: 450, transition: { duration: 0.4 } }}
-              aria-hidden="true"
+    <section ref={containerRef} className="relative h-[550vh] w-full" id="events">
+      <div className="sticky top-0 h-screen w-full overflow-hidden bg-gradient-to-b from-[var(--background)] to-[#d1d1c7]">
+        {/* PANEL 1: Events Section Stage (Left Pinned Column + Right Sliding Events Track) */}
+        <motion.div
+          style={{ x: stageX, pointerEvents: stagePointerEvents }}
+          className="absolute inset-0 size-full flex flex-col bg-gradient-to-b from-[var(--background)] to-[#d1d1c7] z-10 will-change-transform"
+        >
+          {/* Gap partition: Top Horizontal Line with rotating plus icon right at the vertical divider intersection */}
+          <div className="relative w-full border-t border-[var(--line)]">
+            <div
+              className="absolute top-0 -translate-y-1/2 -translate-x-1/2 bg-[var(--background)] px-2.5 py-0.5 text-[15px] font-light leading-none text-[var(--foreground)] select-none z-30 left-1/2 md:left-[48%]"
             >
-              +
-            </motion.span>
-          </div>
-        </div>
-
-        {/* Content Area: Left pinned column and Right horizontally sliding track */}
-        <div className="flex-1 w-full h-full flex flex-col md:flex-row relative overflow-hidden">
-          {/* Left Column: Fixed / Pinned Heading & View All Events */}
-          <div className="w-full md:w-[48%] h-auto md:h-full flex flex-col justify-center px-8 md:px-14 lg:px-24 py-8 md:py-0 border-b md:border-b-0 md:border-r border-[var(--line)] shrink-0 z-20">
-            <div className="max-w-[360px]">
-              <h2 className="m-0 text-[clamp(42px,5.4vw,76px)] font-normal leading-[0.92] tracking-[-0.05em] text-[var(--foreground)]">
-                Discover<br />Our Events
-              </h2>
-
-              <div className="mt-8 md:mt-10">
-                <a
-                  href="#faq"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (containerRef.current) {
-                      const rect = containerRef.current.getBoundingClientRect();
-                      const targetY = window.scrollY + rect.height;
-                      window.scrollTo({ top: targetY, behavior: "smooth" });
-                    }
-                  }}
-                  className="group inline-flex items-center gap-2 border-b border-[var(--foreground)] pb-1 font-mono text-[10px] md:text-[11px] tracking-[0.14em] text-[var(--foreground)] uppercase transition-all hover:opacity-75"
-                >
-                  <span>VIEW ALL EVENTS</span>
-                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-                </a>
-              </div>
+              <motion.span
+                className="inline-block cursor-pointer"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+                whileHover={{ scale: 1.3, rotate: 450, transition: { duration: 0.4 } }}
+                aria-hidden="true"
+              >
+                +
+              </motion.span>
             </div>
           </div>
 
-          {/* Right Column: Horizontally Sliding Events Track */}
-          <div className="w-full md:w-[52%] flex-1 h-full overflow-hidden flex items-center relative">
-            <motion.div
-              ref={trackRef}
-              style={{ x }}
-              className="flex items-center gap-10 md:gap-14 lg:gap-16 pl-8 md:pl-12 lg:pl-16 pr-16 md:pr-32 will-change-transform"
-            >
-              {events.map((event, index) => (
-                <EventCard key={event.id || index} event={event} index={index} />
-              ))}
-            </motion.div>
+          {/* Content Area: Left pinned column and Right horizontally sliding track */}
+          <div className="flex-1 w-full h-full flex flex-col md:flex-row relative overflow-hidden">
+            {/* Left Column: Fixed / Pinned Heading & View All Events */}
+            <div className="w-full md:w-[48%] h-auto md:h-full flex flex-col justify-center px-8 md:px-14 lg:px-24 py-8 md:py-0 border-b md:border-b-0 md:border-r border-[var(--line)] shrink-0 z-20">
+              <div className="max-w-[360px]">
+                <h2 className="m-0 text-[clamp(42px,5.4vw,76px)] font-normal leading-[0.92] tracking-[-0.05em] text-[var(--foreground)]">
+                  Discover<br />Our Events
+                </h2>
+
+                <AnimatedButton
+                  theme="light"
+                  href=""
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 ml-3 w-full max-w-[200px] text-[10px] sm:text-[11px] font-mono tracking-[0.12em] uppercase"
+                >
+                  VIEW ALL EVENTS
+                </AnimatedButton>
+              </div>
+            </div>
+
+            {/* Right Column: Horizontally Sliding Events Track */}
+            <div className="w-full md:w-[52%] flex-1 h-full overflow-hidden flex items-center relative">
+              <motion.div
+                ref={trackRef}
+                style={{ x: trackX }}
+                className="flex items-center gap-10 md:gap-14 lg:gap-16 pl-8 md:pl-12 lg:pl-16 pr-16 md:pr-32 will-change-transform"
+              >
+                {events.map((event, index) => (
+                  <EventCard key={event.id || index} event={event} index={index} />
+                ))}
+              </motion.div>
+            </div>
           </div>
-        </div>
+        </motion.div>
+
+        {/* PANEL 2: Full Screen Experience Screen (covers 100vw, glides in horizontally) */}
+        <motion.div
+          style={{ x: nextScreenX, pointerEvents: nextScreenPointerEvents }}
+          className={cn(
+            "absolute inset-0 size-full flex items-center justify-center px-6 md:px-12 z-20 border-l border-[var(--line)] will-change-transform select-none overflow-hidden transition-colors duration-1000 ease-in-out",
+            isVideoActive ? "bg-black" : "bg-white"
+          )}
+        >
+          {/* Smooth Video Background Layer */}
+          <div
+            className={cn(
+              "absolute inset-0 size-full overflow-hidden transition-opacity duration-1000 ease-in-out pointer-events-none z-0",
+              isVideoActive ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <video
+              ref={videoRef}
+              src="/videos/showreel.mp4"
+              loop
+              playsInline
+              muted={isMuted}
+              preload="auto"
+              className="size-full object-cover"
+              style={{
+                transform: isVideoActive ? "scale(1)" : "scale(1.06)",
+                transition: "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            />
+            {/* Cinematic dark overlay to make whitish text stunningly legible */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]" />
+          </div>
+
+          {/* Centered Large Typography: Perfectly centered vertically & horizontally */}
+          <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 max-w-5xl my-auto select-none">
+            <h2
+              className={cn(
+                "m-0 text-[clamp(44px,7.5vw,108px)] font-normal leading-[0.88] sm:leading-[0.90] tracking-[-0.04em] uppercase transition-colors duration-700 ease-in-out font-display",
+                isVideoActive
+                  ? "text-[#ffffff] drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]"
+                  : "text-[var(--foreground)]"
+              )}
+            >
+              READY<br />
+              FOR YOUR NEXT<br />
+              EXPERIENCE?
+            </h2>
+          </div>
+
+          {/* Bottom Center Pill Button: VIEW / CLOSE SHOWREEL */}
+          <div className="absolute bottom-8 sm:bottom-10 md:bottom-12 left-0 right-0 flex items-center justify-center z-20">
+            <button
+              type="button"
+              onClick={toggleShowreel}
+              className={cn(
+                "group inline-flex items-center gap-2.5 px-5 py-2 sm:px-6 sm:py-2.5 rounded-full border transition-all duration-700 ease-in-out text-[10px] sm:text-[11px] font-mono tracking-[0.14em] uppercase cursor-pointer active:scale-95",
+                isVideoActive
+                  ? "border-white/50 text-white bg-black/40 hover:bg-white/20 hover:border-white shadow-xl backdrop-blur-md"
+                  : "border-[var(--foreground)]/30 hover:border-[var(--foreground)] text-[var(--foreground)] bg-transparent hover:bg-black/[0.04]"
+              )}
+              aria-label={isVideoActive ? "Close Showreel" : "View Showreel"}
+            >
+              {isVideoActive ? (
+                <>
+                  <X className="size-3.5 sm:size-4 stroke-[1.8] transition-transform duration-200 group-hover:rotate-90" />
+                  <span className="font-medium">CLOSE SHOWREEL</span>
+                </>
+              ) : (
+                <>
+                  <Projector className="size-3.5 sm:size-4 stroke-[1.6] transition-transform duration-200 group-hover:scale-110" />
+                  <span className="font-medium">VIEW SHOWREEL</span>
+                </>
+              )}
+            </button>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

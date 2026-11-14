@@ -23,8 +23,10 @@ export default {
         foreground: "var(--foreground)",
       },
       fontFamily: {
-        display: ["var(--display)"],
-        body: ["var(--body)"],
+        sans: ["var(--font-familjen-grotesk)", "var(--body)", "sans-serif"],
+        display: ["var(--font-familjen-grotesk)", "var(--display)", "sans-serif"],
+        body: ["var(--font-familjen-grotesk)", "var(--body)", "sans-serif"],
+        mono: ["var(--font-familjen-grotesk)", "monospace"],
       },
     },
   },

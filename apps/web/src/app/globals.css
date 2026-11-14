@@ -7,14 +7,24 @@
   --foreground: #1c1d20;
   --ink-muted: #666668;
   --line: #d7d4d0;
-  --display: "Arial Narrow", "Helvetica Neue", sans-serif;
-  --body: Inter, Arial, sans-serif;
+  --font-familjen-grotesk: "Familjen Grotesk", sans-serif;
+  --display: var(--font-familjen-grotesk), "Familjen Grotesk", sans-serif;
+  --body: var(--font-familjen-grotesk), "Familjen Grotesk", sans-serif;
 }
 
 html,
 body {
+  font-family: var(--font-familjen-grotesk), "Familjen Grotesk", sans-serif;
   max-width: 100%;
   overflow-x: clip;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
 }
 
 html.lenis, html.lenis body {
