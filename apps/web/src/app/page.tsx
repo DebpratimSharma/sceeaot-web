@@ -8,7 +8,7 @@ import { StatementSection } from "@/components/home/StatementSection";
 import { TeamSection } from "@/components/home/TeamSection";
 
 export default function HomePage() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(3);
 
   return (
     <main className="site-shell overflow-x-clip">
