@@ -14,7 +14,7 @@ assignees: ""
 
 **Application/Component:**
 
-<!-- Which app/component is affected (iotricity/links/web/ui) -->
+<!-- Which app/component is affected (links/web/ui) -->
 
 **Environment Details:**
 
@@ -91,7 +91,6 @@ assignees: ""
 
 ### Component
 
-- [ ] IOTricity App
 - [ ] Links App
 - [ ] Web App
 - [ ] UI Package

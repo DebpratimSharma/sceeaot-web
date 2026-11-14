@@ -1,58 +1,40 @@
-import { LoadingProvider } from "@/components/providers/LoadingProvider";
+import type { Metadata } from "next";
+import { Familjen_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const familjenGrotesk = Familjen_Grotesk({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-familjen-grotesk",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Links",
+    default: "Links Directory | SCEE AOT",
     template: "%s | SCEE AOT",
   },
   description:
-    "SCEE AOT - the premier Students Chapter of Electrical Engineering at Academy of Technology. Explore technical workshops, research projects, industry connections, and career opportunities in electrical engineering.",
+    "Official directory of initiatives, event portals, resources, and social channels for the Students’ Chapter of Electrical Engineering at Academy of Technology.",
   keywords: [
     "SCEE AOT",
     "Students Chapter Electrical Engineering",
     "Academy of Technology",
-    "electrical engineering students",
-    "technical workshops",
-    "engineering projects",
-    "student community",
-    "electrical engineering careers",
-    "AOT engineering",
-    "student organization",
+    "AOT Links",
+    "SCEE Directory",
+    "IoTRICITY",
   ],
   authors: [{ name: "SCEE AOT" }],
   creator: "SCEE AOT",
   publisher:
     "Students Chapter of Electrical Engineering, Academy of Technology",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
   alternates: {
     canonical: "https://sceeaot-links.vercel.app",
   },
-  category: "education",
+  icons: {
+    icon: "/scee_logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -61,14 +43,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={familjenGrotesk.variable}>
       <body
-        suppressHydrationWarning={true}
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${familjenGrotesk.className} min-h-screen bg-[var(--background)] font-body text-[var(--foreground)] antialiased`}
       >
-        <LoadingProvider>
-          <div>{children}</div>
-        </LoadingProvider>
+        {children}
         <Analytics />
         <SpeedInsights />
       </body>

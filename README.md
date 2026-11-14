@@ -6,8 +6,6 @@ Why a Mono Repo? Main because the LLMs cans see the design and logical changes i
 
 `apps/web` [`sceeaot.vercel.app`](sceeaot.vercel.app) - The main website for our student chapter hosting the about our student chapter, team members and our events.
 
-`apps/iotricity` [`iotricity.vercel.app`](iotricity.vercel.app) - Scee's flagship events webiste.
-
 `apps/links` [`sceeaot-links.vercel.app`](sceeaot-links.vercel.app) - Linktree sucks so we made our own and it is fast.
 
 `packages/eslint-config` - All `eslint` related configurations for the whole repo (needs to be configured).

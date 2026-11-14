@@ -1,71 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+interface HeadlinesProps {
+  headLine?: string;
+  tag?: string;
+  description?: string;
+  className?: string;
+}
 
-const Headlines = ({ headLine = "Headline", noMarquee = false }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-
-    // Check if it's desktop and handle resize
-    const checkScreenSize = () => {
-      setIsDesktop(window.innerWidth >= 1024);
-    };
-
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
-
-  // Disable marquee for About Us and Live Events on desktop
-  const shouldDisableMarquee =
-    noMarquee ||
-    (isDesktop && (headLine === "About Us" || headLine === "Live Events"));
-
+export const Headlines = ({
+  headLine = "Section",
+  tag,
+  description,
+  className = "",
+}: HeadlinesProps) => {
   return (
-    <div
-      className={`h-[2rem] md:h-[4rem] overflow-hidden ${
-        shouldDisableMarquee ? "no-marquee" : ""
-      }`}
-    >
-      <div
-        className={`flex whitespace-nowrap ${
-          isVisible ? "animate-marquee" : "opacity-0"
-        }`}
-      >
-        <p
-          className="text-[3.2rem] md:text-[7.1075rem] font-bold text-transparent bg-clip-text mb-3 mt-[18px] md:mb-0 md:mt-10 mr-36"
-          style={{
-            fontFamily: "KMR Apparat1",
-            WebkitTextStroke: "1px var(--primary)",
-            lineHeight: "0",
-          }}
-        >
+    <div className={`py-4 md:py-6 ${className}`}>
+      {tag && (
+        <span className="text-[10px] md:text-[11px] font-medium tracking-[0.12em] text-[var(--ink-muted)] uppercase block mb-1.5">
+          {tag}
+        </span>
+      )}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+        <h2 className="text-[clamp(28px,3.8vw,48px)] font-normal leading-[1.05] tracking-[-0.04em] text-[var(--foreground)]">
           {headLine}
-        </p>
-        <p
-          className="text-[3.2rem] md:text-[7.1075rem] font-bold text-transparent bg-clip-text mb-3 mt-[18px] md:mb-0 md:mt-10 mr-36"
-          style={{
-            fontFamily: "KMR Apparat1",
-            WebkitTextStroke: "1px var(--primary)",
-            lineHeight: "0",
-          }}
-        >
-          {headLine}
-        </p>
-        <p
-          className="text-[3.2rem] md:text-[7.1075rem] font-bold text-transparent bg-clip-text mb-3 mt-[18px] md:mb-0 md:mt-10 mr-36"
-          style={{
-            fontFamily: "KMR Apparat1",
-            WebkitTextStroke: "1px var(--primary)",
-            lineHeight: "0",
-          }}
-        >
-          {headLine}
-        </p>
+        </h2>
+        {description && (
+          <p className="max-w-[360px] text-[12px] md:text-[13px] leading-[1.5] text-[var(--ink-muted)]">
+            {description}
+          </p>
+        )}
       </div>
     </div>
   );

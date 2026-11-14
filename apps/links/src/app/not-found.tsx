@@ -1,62 +1,54 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
-
   return (
-    <div className="min-h-screen bg-background text-secondary">
-      {/* Main container with side borders */}
-      <div className="w-[calc(100%-30px)] lg:w-[calc(100%-14rem)] mx-auto min-h-screen flex flex-col items-center justify-center px-4 relative">
-        {/* Animated 404 */}
-        <div
-          className={`transition-all duration-1000 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-        >
-          <h1
-            className="text-[120px] md:text-[180px] lg:text-[240px] font-bold leading-none mb-4"
-            style={{
-              fontFamily: "KMR Apparat1",
-              WebkitTextStroke: "2px var(--primary)",
-              color: "transparent",
-            }}
+    <div className="flex min-h-screen flex-col items-center justify-between px-6 py-12 text-center text-[var(--foreground)]">
+      {/* Top Header Logo */}
+      <Link href="/" className="flex items-center gap-2 group">
+        <Image
+          src="/scee_logo.png"
+          alt="SCEE Logo"
+          width={36}
+          height={36}
+          className="size-8 object-contain"
+        />
+        <span className="text-[13px] font-semibold tracking-[-0.02em] uppercase">
+          SCEE AOT
+        </span>
+      </Link>
+
+      {/* Main 404 Message */}
+      <div className="max-w-md my-auto py-12">
+        <span className="text-[10px] font-mono tracking-widest uppercase text-[var(--ink-muted)] block mb-2">
+          ERROR 404
+        </span>
+        <h1 className="text-[clamp(72px,12vw,120px)] font-normal leading-none tracking-[-0.05em] text-[var(--foreground)]">
+          404
+        </h1>
+        <h2 className="mt-3 text-[22px] sm:text-[26px] font-medium tracking-[-0.02em] text-[var(--foreground)]">
+          Page not found
+        </h2>
+        <p className="mt-2 text-[14px] leading-relaxed text-[var(--ink-muted)]">
+          The link you followed may have been updated, moved, or no longer exists.
+        </p>
+
+        <div className="mt-8 flex justify-center">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full bg-[#1c1d20] text-white hover:bg-black px-6 py-2.5 text-[12px] font-medium tracking-[0.05em] uppercase transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
           >
-            404
-          </h1>
-        </div>
-        {/* Error Message */}
-        <div
-          className={`text-center max-w-2xl transition-all duration-1000 delay-300 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-        >
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6 text-primary font-apparat">
-            Page Not Found
-          </h2>
-          <p className="text-base md:text-lg lg:text-xl mb-8 text-secondary/80 font-pxg leading-relaxed">
-            Oops! The page you're looking for seems to have wandered off into
-            the digital void. It might have been moved, deleted, or perhaps it
-            never existed at all.
-          </p>
-        </div>
-        {/* Footer Message */}
-        <div
-          className={`mt-12 text-center transition-all duration-1000 delay-700 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-        >
-          <p className="text-sm text-secondary/60 font-pxg">
-            Lost? Don't worry, even the best engineers sometimes take wrong
-            turns.
-          </p>
+            <ArrowLeft className="size-3.5" />
+            <span>Return to directory</span>
+          </Link>
         </div>
       </div>
+
+      {/* Footer Note */}
+      <p className="text-[11px] font-mono tracking-wider uppercase text-[var(--ink-muted)]">
+        WE CONNECT. WE EXPLORE. WE CREATE. WE GROW.
+      </p>
     </div>
   );
 }

@@ -4,53 +4,57 @@ import {
   LinksFooter,
   LinksGrid,
   LinksHeader,
+  LinksNavbar,
   socialMediaLinks,
   websiteLinks,
 } from "@/components/links";
-import Divider from "@/components/ui/Divider";
 import Headlines from "@/components/ui/Headlines";
+import SectionDivider from "@/components/ui/SectionDivider";
 
-const LinksPage = () => {
+export default function LinksPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header Section */}
-      <div className="w-[calc(100%-30px)] lg:w-[calc(100%-14rem)] mx-auto border-[0.5px] border-gray-500 border-t-0 border-b-0">
-        <div className="px-6 lg:px-12 py-8 lg:py-16">
-          <LinksHeader />
-        </div>
-      </div>
-      <Divider />
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] selection:bg-[#1c1d20] selection:text-white">
+      {/* Sticky Clean Navbar */}
+      <LinksNavbar />
 
-      {/* Website Links Section */}
-      <div className="w-[calc(100%-30px)] lg:w-[calc(100%-14rem)] mx-auto border-[0.5px] border-gray-500 border-t-0 border-b-0">
-        <div className="flex items-center border-gray-500 border-b-[0.5px] overflow-hidden">
-          <Headlines headLine="Website Links" />
-        </div>
-        <div className="px-6 lg:px-12 py-8 lg:py-16">
-          <LinksGrid links={websiteLinks} />
-        </div>
-      </div>
-      <Divider />
+      {/* Main Content Container */}
+      <main className="mx-auto max-w-5xl px-5 sm:px-8">
+        {/* Editorial Hero Header */}
+        <LinksHeader />
 
-      {/* Social Media Links Section */}
-      <div className="w-[calc(100%-30px)] lg:w-[calc(100%-14rem)] mx-auto border-[0.5px] border-gray-500 border-t-0 border-b-0">
-        <div className="flex items-center border-gray-500 border-b-[0.5px] overflow-hidden">
-          <Headlines headLine="Social Media" />
-        </div>
-        <div className="px-6 lg:px-12 py-8 lg:py-16">
-          <LinksGrid links={socialMediaLinks} />
-        </div>
-      </div>
-      <Divider />
+        {/* Section Divider */}
+        <SectionDivider />
 
-      {/* Footer Section */}
-      <div className="w-[calc(100%-30px)] lg:w-[calc(100%-14rem)] mx-auto border-[0.5px] border-gray-500 border-t-0 border-b-0">
-        <div className="px-6 lg:px-12 py-8 lg:py-16">
-          <LinksFooter />
-        </div>
-      </div>
+        {/* Section 1: Official Hubs */}
+        <section className="py-4 sm:py-6">
+          <Headlines
+            tag="01 / PLATFORMS & HUBS"
+            headLine="Official Hubs"
+            description="Our primary chapter websites, flagship hackathon guides, and media archives."
+          />
+          <div className="mt-4 sm:mt-6">
+            <LinksGrid links={websiteLinks} columns={2} featured={true} />
+          </div>
+        </section>
+
+        {/* Section Divider */}
+        <SectionDivider />
+
+        {/* Section 2: Social Media & Channels */}
+        <section className="py-4 sm:py-6">
+          <Headlines
+            tag="02 / COMMUNITY & NETWORKS"
+            headLine="Social Spaces"
+            description="Join conversations, follow announcements, and connect with engineers across our network."
+          />
+          <div className="mt-4 sm:mt-6">
+            <LinksGrid links={socialMediaLinks} columns={2} />
+          </div>
+        </section>
+
+        {/* Footer */}
+        <LinksFooter />
+      </main>
     </div>
   );
-};
-
-export default LinksPage;
+}

@@ -3,4 +3,7 @@ export interface LinkItem {
   url: string;
   iconImage?: string;
   description?: string;
+  badge?: string;
+  category?: "official" | "social";
+  handle?: string;
 }
