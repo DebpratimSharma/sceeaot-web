@@ -202,7 +202,7 @@ export function HeroSection({
 
         {/* Statement Section Layer: Smoothly fades in over Hero */}
         <motion.div
-          className="absolute inset-0 z-[10] size-full overflow-y-auto bg-[var(--background)] text-[var(--foreground)]"
+          className="absolute inset-0 z-[10] size-full overflow-hidden bg-[var(--background)] text-[var(--foreground)]"
           style={{
             opacity: statementOpacity,
             pointerEvents: statementPointerEvents,

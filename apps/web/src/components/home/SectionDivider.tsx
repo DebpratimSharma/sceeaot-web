@@ -9,13 +9,13 @@ export interface SectionDividerProps {
 }
 
 export function SectionDivider({
-  className = "",
+  className = "my-8 md:my-12",
   lineClassName = "",
   badgeClassName = "",
 }: SectionDividerProps) {
   return (
     <div
-      className={`relative my-8 flex w-full items-center justify-center md:my-12 ${className}`}
+      className={`relative flex w-full items-center justify-center ${className}`}
     >
       {/* Horizontal Line animating from center */}
       <motion.div
